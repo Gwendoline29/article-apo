@@ -1,0 +1,23 @@
+---
+title: "Article APO"
+output: github_document
+---
+
+### 
+
+```{r}
+path <- "~/article-apo/Fichierdesequences"
+list.files(path)
+```
+
+```{r}
+data<-read.table(file = "/home/article-apo/SraRunTable.txt", header = TRUE, sep=";")
+```
+
+```{r}
+fnFs <- sort(list.files(path, pattern="_1_001.fastq.gz", full.names = TRUE))
+fnRs <- sort(list.files(path, pattern="_2_001.fastq.gz", full.names = TRUE))
+sample.names <- sapply(strsplit(basename(fnFs), "_"), `[`, 1)
+sample.names
+```
+
