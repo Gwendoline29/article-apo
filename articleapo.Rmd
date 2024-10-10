@@ -130,10 +130,10 @@ rownames(track) <- sample.names
 head(track)
 ```
 
-### Attribuer une taxonomie
+### Attribuer une taxonomie 
 
 ```{r}
-taxa <- assignTaxonomy(seqtab.nochim, "~/article-apo/silva_nr_v132_train_set.fa.gz", multithread=TRUE)
+taxa <- assignTaxonomy(seqtab.nochim, "~/tax/silva_nr_v132_train_set.fa.gz", multithread=TRUE)
 ```
 
 ```{r}
