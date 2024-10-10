@@ -102,6 +102,51 @@ seqtab <- makeSequenceTable(mergers)
 dim(seqtab)
 ```
 
+```{r}
+table(nchar(getSequences(seqtab)))
+```
+
+### Supprimer les chimères
+
+```{r}
+seqtab.nochim <- removeBimeraDenovo(seqtab, method="consensus", multithread=TRUE, verbose=TRUE)
+```
+
+```{r}
+dim(seqtab.nochim)
+```
+
+```{r}
+sum(seqtab.nochim)/sum(seqtab)
+```
+
+### Suivre les lectures à travers le pipeline
+
+```{r}
+getN <- function(x) sum(getUniques(x))
+track <- cbind(out, sapply(dadaFs, getN), sapply(dadaRs, getN), sapply(mergers, getN), rowSums(seqtab.nochim))
+colnames(track) <- c("input", "filtered", "denoisedF", "denoisedR", "merged", "nonchim")
+rownames(track) <- sample.names
+head(track)
+```
+
+### Attribuer une taxonomie
+
+```{r}
+taxa <- assignTaxonomy(seqtab.nochim, "~/dada2tuto/silva_nr_v132_train_set.fa.gz", multithread=TRUE)
+```
+
+```{r}
+taxa <- addSpecies(taxa, "~/dada2tuto/silva_species_assignment_v132.fa.gz")
+```
+
+```{r}
+taxa.print <- taxa 
+rownames(taxa.print) <- NULL
+head(taxa.print)
+```
+
+
 
 
 
