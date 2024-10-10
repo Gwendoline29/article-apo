@@ -133,11 +133,7 @@ head(track)
 ### Attribuer une taxonomie
 
 ```{r}
-taxa <- assignTaxonomy(seqtab.nochim, "~/dada2tuto/silva_nr_v132_train_set.fa.gz", multithread=TRUE)
-```
-
-```{r}
-taxa <- addSpecies(taxa, "~/dada2tuto/silva_species_assignment_v132.fa.gz")
+taxa <- assignTaxonomy(seqtab.nochim, "~/article-apo/silva_nr_v132_train_set.fa.gz", multithread=TRUE)
 ```
 
 ```{r}
