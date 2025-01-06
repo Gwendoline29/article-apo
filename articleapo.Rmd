@@ -171,7 +171,7 @@ fnRbs <- setdiff(fnRbs, fichiers_a_supprimer)
 
 ```{r}
 sample.names2 <- (data$Sample.Name)
-sample.names2
+sample.names2  
 ```
 
 ```{r}
