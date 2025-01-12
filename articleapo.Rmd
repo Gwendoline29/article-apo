@@ -212,18 +212,19 @@ Pour évaluer la précision, il n'y avait que mock.ref qui ne fonctionnait pas. 
 ### Graphiques
 
 ```{r}
-data <- data.frame(
+data3 <- data.frame(
   sample.names
 )
 
 # Installer et charger le package cluster pour la distance de Gower
 install.packages("cluster")
-library(cluster)
 ```
 
 ```{r}
 library(cluster)
 ```
+
+J'ai voulu réaliser une PCoA avec les ASVs des archées. Seulement dans l'article, ces échantillons ont été classés en trois groupes en fonction de la profondeur et des niveaux d'oxygène dissous, notamment la couche d'eau supérieure (NER_UP), la couche d'eau moyenne (NER_MID) et la couche d'eau profonde (NER_DOWN). Je n'ai pas réussi à les séparer selon ces trois groupes. Néanmoins j'ai essayé de créer une PCoA avec les mêmes dimensions que dans l'article. 
 
 ```{r}
 data[] <- lapply(data, function(x) if(is.character(x)) factor(x) else x)
@@ -240,6 +241,11 @@ pcoa_result <- cmdscale(dist_matrix_gower, k = 2)  # k = 2 pour obtenir 2 dimens
 plot(pcoa_result[, 1], pcoa_result[, 2], 
      xlab = "Dimension 1", ylab = "Dimension 2", 
      main = "PCoA", pch = 19)
+
+# Modifier les limites des axes
+pcoa_result + 
+  scale_x_continuous(limits = c(-0.5, 0.7)) +  # Limites de l'axe X
+  scale_y_continuous(limits = c(-0.4, 0.6))    # Limites de l'axe Y
 ```
 
 # Pour les Bactéries
