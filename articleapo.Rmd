@@ -334,6 +334,8 @@ sample.names2 <- (data2$Sample.Name)
 sample.names2  
 ```
 
+
+
 ```{r}
 plotQualityProfile(fnFbs[1:2])
 ```
@@ -345,7 +347,6 @@ plotQualityProfile(fnRbs[1:20])
 ```{r}
 plotQualityProfile(filtFbs[1])
 ```
-
 
 ### Filtrer et rogner
 
@@ -378,64 +379,9 @@ errR2 <- learnErrors(filtRbs, multithread=TRUE)
 ```
 
 ```{r}
-plotErrors(errF, nominalQ=TRUE)
+plotErrors(errF2, nominalQ=TRUE)
 ```
 
-### Application de l’algorithme d’interférence d’échantillon de base aux données de séqences filtrées et découpées
 
-```{r}
-dadaFbs <- dada2(filtFbs, err=errF2, multithread=TRUE)
-```
-
-```{r}
-dadaRbs <- dada2(filtRbs, err=errR2, multithread=TRUE)
-```
-
-```{r}
-dadaFs[[1]]
-```
-
-### Fusionner les lectures appariées
-
-```{r}
-mergers <- mergePairs(dadaFs, filtFs, dadaRs, filtRs, verbose=TRUE)
-```
-
-```{r}
-plotQualityProfile(filtFs[1:10])
-```
-
-```{r}
-plotQualityProfile(filtRs[1:10])
-```
-
-```{r}
-head(mergers[[1]])
-```
-
-### Construire une table de séquences
-
-```{r}
-seqtab <- makeSequenceTable(mergers)
-dim(seqtab)
-```
-
-```{r}
-table(nchar(getSequences(seqtab)))
-```
-
-### Supprimer les chimères
-
-```{r}
-seqtab.nochim <- removeBimeraDenovo(seqtab, method="consensus", multithread=TRUE, verbose=TRUE)
-```
-
-```{r}
-dim(seqtab.nochim)
-```
-
-```{r}
-sum(seqtab.nochim)/sum(seqtab) 
-```
 
 
