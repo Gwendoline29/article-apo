@@ -153,7 +153,7 @@ rownames(seqtab.nochim)
 # Vérifier la structure complète de l'objet
 str(seqtab.nochim)
 
-# Exemple de recherche du nom exact
+# Recherche du nom exact
 grep("Mock", rownames(seqtab.nochim))
 ```
 
@@ -170,11 +170,11 @@ cat("Of those,", sum(match.ref), "were exact matches to the expected reference s
 ```
 
 ```{r}
-# Vérifier les types de unqs.mock et mock.ref
+# Vérification des types de unqs.mock et mock.ref
 class(unqs.mock)
 class(mock.ref)
 
-# Vérifier la structure des objets
+# Vérification de la structure des objets
 str(unqs.mock)
 str(mock.ref)
 ```
@@ -188,95 +188,28 @@ unqs.mock[[1]]  # Accède au premier élément de la liste
 ```
 
 ```{r}
-# Assurez-vous que unqs.mock et mock.ref sont des vecteurs de chaînes
+# Vérification que unqs.mock et mock.ref sont des vecteurs de chaînes
 unqs.mock <- unlist(unqs.mock)
 mock.ref <- unlist(mock.ref)
 
-# Appliquer la logique avec sapply et grepl
+# sapply et grepl
 result <- sum(sapply(unqs.mock, function(x) any(grepl(x, mock.ref))))
 
-# Vérifier le résultat
+# Vérification du résultat
 print(result)
 ```
 
+J'ai utilisé la fonction sapply pour appliquer à tous les éléments et la fonction grepl pour rechercher des motifs (patterns) dans des chaînes de caractères. 
+
 ```{r}
-# Vérifier si le fichier existe à l'emplacement spécifié
+# Vérification si le fichier existe à l'emplacement spécifié
 file_exists <- file.exists(mock.ref)
 print(file_exists)
 ```
 
-```{r}
-mock.ref <- "/home/rstudio/ARTICLE-APO/FICHIERDESEQUENCES/HMP_MOCK.V35.FASTA"
-# Exemple pour donner des permissions de lecture
-chmod +r /home/rstudio/ARTICLE-APO/FICHIERDESEQUENCES/HMP_MOCK.V35.FASTA
-```
-
-```{r}
-# Lire le fichier fasta (si c'est ce que vous voulez faire)
-mock.ref_content <- readLines(mock.ref)
-
-# Appliquer la logique avec sapply et grepl
-result <- sum(sapply(unqs.mock, function(x) any(grepl(as.character(x), mock.ref_content))))
-
-# Vérifier le résultat
-print(result)
-```
+Pour évaluer la précision, il n'y avait que mock.ref qui ne fonctionnait pas. Je pense que c'est parce que je n'ai pas de mock dans la table de séquences. 
 
 ### Graphiques
-
-```{r}
-samples.out <- rownames(seqtab.nochim)
-subject <- sapply(strsplit(samples.out, "D"), `[`, 1)
-gender <- substr(subject,1,1)
-subject <- substr(subject,2,999)
-day <- as.integer(sapply(strsplit(samples.out, "D"), `[`, 2))
-samdf <- data.frame(Subject=subject, Gender=gender, Day=day)
-samdf$When <- "Early"
-samdf$When[samdf$Day>100] <- "Late"
-rownames(samdf) <- samples.out
-```
-
-```{r}
-ps <- phyloseq(otu_table(seqtab.nochim, taxa_are_rows=FALSE), 
-               sample_data(samdf), 
-               tax_table(taxa))
-ps <- prune_samples(sample_names(ps) != "Mock", ps) # Remove mock sample
-```
-
-```{r}
-dna <- Biostrings::DNAStringSet(taxa_names(ps))
-names(dna) <- taxa_names(ps)
-ps <- merge_phyloseq(ps, dna)
-taxa_names(ps) <- paste0("ASV", seq(ntaxa(ps)))
-ps
-```
-
-```{r}
-plot_richness(ps, x="Day", measures=c("Shannon", "Simpson"), color="When")
-```
-
-```{r}
-# Transform data to proportions as appropriate for Bray-Curtis distances
-ps.prop <- transform_sample_counts(ps, function(otu) otu/sum(otu))
-ord.nmds.bray <- ordinate(ps.prop, method="NMDS", distance="bray")
-```
-
-```{r}
-plot_ordination(ps.prop, ord.nmds.bray, color="When", title="Bray NMDS")
-```
-
-```{r}
-top20 <- names(sort(taxa_sums(ps), decreasing=TRUE))[1:20]
-ps.top20 <- transform_sample_counts(ps, function(OTU) OTU/sum(OTU))
-ps.top20 <- prune_taxa(top20, ps.top20)
-plot_bar(ps.top20, x="Day", fill="Family") + facet_wrap(~When, scales="free_x")
-```
-
-```{r}
-
-```
-
-
 
 ```{r}
 data <- data.frame(
@@ -309,7 +242,6 @@ plot(pcoa_result[, 1], pcoa_result[, 2],
      main = "PCoA", pch = 19)
 ```
 
-
 # Pour les Bactéries
 
 ### Définition de la variable et affichage des fichiers
@@ -334,18 +266,14 @@ sample.names2 <- (data2$Sample.Name)
 sample.names2  
 ```
 
-
+Jusqu'à cette étape tout marchait bien. Seulement quand j'ai commencé à faire les graphiques pour visualiser les profils de qualité, ça a donné un graphique très bizarre. On ne distingue que deux lignes noires avec au milieu une ligne orange. Cette ligne orange semble être les quartiles de la distribution du score de qualité. J'ai voulu vérifier le score de qualité des séquences en les regardant et j'ai remarqué que pour chaque séquence, le score était très bon. En effet, le score de qualité est de 30 avec une probabilité de bases incorrectes de 0,001. 
 
 ```{r}
-plotQualityProfile(fnFbs[1:2])
+plotQualityProfile(fnFbs[1:20])
 ```
 
 ```{r}
 plotQualityProfile(fnRbs[1:20])
-```
-
-```{r}
-plotQualityProfile(filtFbs[1])
 ```
 
 ### Filtrer et rogner
@@ -361,6 +289,8 @@ names(filtRbs) <- sample.names2
 summary(filtFbs)
 ```
 
+Lorsque j'ai lancé la commande pour la filtration avec les paramètres de filtrage standard, tout s'est bien déroulé. 
+
 ```{r}
 out2 <- filterAndTrim(fnFbs, filtFbs, fnRbs, filtRbs, truncLen=c(260,260),
               maxN=0, maxEE=c(4,4), truncQ=4, rm.phix=TRUE,
@@ -369,6 +299,13 @@ head(out2)
 ```
 
 ### Construire un modèle de probabilité d’erreur
+
+Mais quand j'ai voulu construire le modèle de probabilité d'erreur, deux messages d'erreur sont apparus. Celui-ci indiquait que la fonction getErrors() attend une matrice d'erreurs non vide, mais elle reçoit un objet NULL ou une matrice vide à la place.
+Je me suis donc assurée que les séquences de lecture étaient valides et que les fichiers nécessaires étaient correctement importés. 
+
+L'autre message indiquait que l'algorithme ne parvenait pas à estimer les taux d'erreur en raison du manque de données suffisantes. J'ai donc trouvé cela bizarre étant donné le bon score de qualité des séquences. J'ai donc pensé que j'avais coupé trop court les séquences, ce qui empêchait une estimation correcte des taux d'erreur. J'ai donc essayé de jouer avec les paramètres de filtrage standard, en particulier maxEE et truncLen, mais ça n'a rien changé. 
+
+Il se peut donc que les lectures des fichiers FastQ aient des problèmes avec un format incorrect ou un fichier mal formé. Cela empêche alors l'algorithme de générer une matrice d'erreur valable. Je pense donc que le problème vient du format des fichiers car dans la table de données, on peut voir qu'ils se terminent tous différemment. Cependant, je n'ai pas trouvé comment résoudre ce problème. 
 
 ```{r}
 errF2 <- learnErrors(filtFbs, multithread=TRUE)
@@ -382,6 +319,10 @@ errR2 <- learnErrors(filtRbs, multithread=TRUE)
 plotErrors(errF2, nominalQ=TRUE)
 ```
 
+J'ai donc voulu voir si les graphiques pour les séquences filtrées étaient, eux aussi, anormaux, même si je n'avais pas réussi à aller jusqu'au bout de la filtration. Sans grande surprise, ils étaient visuellement identiques aux précédents.  
 
+```{r}
+plotQualityProfile(filtFbs[1])
+```
 
 
