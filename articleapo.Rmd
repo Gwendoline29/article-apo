@@ -28,7 +28,7 @@ sample.names
 ```
 
 ```{r}
-plotQualityProfile(fnFs[1:20])
+plotQualityProfile(fnFs[1:20]) 
 ```
 
 ```{r}
@@ -147,10 +147,10 @@ head(taxa.print)
 ### Evaluer la précision
 
 ```{r}
-# Vérifier les noms des lignes de seqtab.nochim
+# Vérification des noms des lignes de seqtab.nochim
 rownames(seqtab.nochim)
 
-# Vérifier la structure complète de l'objet
+# Vérification de la structure complète de l'objet
 str(seqtab.nochim)
 
 # Recherche du nom exact
@@ -228,21 +228,22 @@ J'ai voulu réaliser une PCoA avec les ASVs des archées. Seulement dans l'artic
 
 ```{r}
 data[] <- lapply(data, function(x) if(is.character(x)) factor(x) else x)
-# Calculer la matrice de distance de Gower
+
+# Calcul de la matrice de distance de Gower
 dist_matrix_gower <- daisy(data, metric = "gower")
 
-# Vérifier la matrice de distance
+# Vérification la matrice de distance
 print(dist_matrix_gower)
 
-# Réaliser la PCoA avec cmdscale
+# Réalisation de la PCoA avec cmdscale
 pcoa_result <- cmdscale(dist_matrix_gower, k = 2)  # k = 2 pour obtenir 2 dimensions
 
-# Visualiser les résultats de la PCoA
+# Visualisation les résultats de la PCoA
 plot(pcoa_result[, 1], pcoa_result[, 2], 
      xlab = "Dimension 1", ylab = "Dimension 2", 
      main = "PCoA", pch = 19)
 
-# Modifier les limites des axes
+# Modification des limites des axes
 pcoa_result + 
   scale_x_continuous(limits = c(-0.5, 0.7)) +  # Limites de l'axe X
   scale_y_continuous(limits = c(-0.4, 0.6))    # Limites de l'axe Y
@@ -309,7 +310,7 @@ head(out2)
 Mais quand j'ai voulu construire le modèle de probabilité d'erreur, deux messages d'erreur sont apparus. Celui-ci indiquait que la fonction getErrors() attend une matrice d'erreurs non vide, mais elle reçoit un objet NULL ou une matrice vide à la place.
 Je me suis donc assurée que les séquences de lecture étaient valides et que les fichiers nécessaires étaient correctement importés. 
 
-L'autre message indiquait que l'algorithme ne parvenait pas à estimer les taux d'erreur en raison du manque de données suffisantes. J'ai donc trouvé cela bizarre étant donné le bon score de qualité des séquences. J'ai donc pensé que j'avais coupé trop court les séquences, ce qui empêchait une estimation correcte des taux d'erreur. J'ai donc essayé de jouer avec les paramètres de filtrage standard, en particulier maxEE et truncLen, mais ça n'a rien changé. 
+L'autre message indiquait que l'algorithme ne parvenait pas à estimer les taux d'erreur en raison du manque de données suffisantes. J'ai donc trouvé cela bizarre étant donné le bon score de qualité des séquences. J'ai donc pensé que j'avais coupé trop court les séquences, ce qui empêchait une estimation correcte des taux d'erreur. J'ai donc essayé de jouer avec les paramètres de filtrage standard, en particulier maxEE, truncLen et truncQ, mais ça n'a rien changé. 
 
 Il se peut donc que les lectures des fichiers FastQ aient des problèmes avec un format incorrect ou un fichier mal formé. Cela empêche alors l'algorithme de générer une matrice d'erreur valable. Je pense donc que le problème vient du format des fichiers car dans la table de données, on peut voir qu'ils se terminent tous différemment. Cependant, je n'ai pas trouvé comment résoudre ce problème. 
 
@@ -325,7 +326,7 @@ errR2 <- learnErrors(filtRbs, multithread=TRUE)
 plotErrors(errF2, nominalQ=TRUE)
 ```
 
-J'ai donc voulu voir si les graphiques pour les séquences filtrées étaient, eux aussi, anormaux, même si je n'avais pas réussi à aller jusqu'au bout de la filtration. Sans grande surprise, ils étaient visuellement identiques aux précédents.  
+J'ai voulu voir si les graphiques pour les séquences filtrées étaient, eux aussi, anormaux, même si je n'avais pas réussi à aller jusqu'au bout de la filtration. Sans grande surprise, ils étaient visuellement identiques aux précédents.  
 
 ```{r}
 plotQualityProfile(filtFbs[1])
