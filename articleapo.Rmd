@@ -144,6 +144,172 @@ rownames(taxa.print) <- NULL
 head(taxa.print)
 ```
 
+### Evaluer la précision
+
+```{r}
+# Vérifier les noms des lignes de seqtab.nochim
+rownames(seqtab.nochim)
+
+# Vérifier la structure complète de l'objet
+str(seqtab.nochim)
+
+# Exemple de recherche du nom exact
+grep("Mock", rownames(seqtab.nochim))
+```
+
+```{r}
+unqs.mock <- seqtab.nochim
+unqs.mock <- sort(unqs.mock[unqs.mock>0], decreasing=TRUE) # Drop ASVs absent in the Mock
+cat("DADA2 inferred", length(unqs.mock), "sample sequences present in the Mock community.\n")
+```
+
+```{r}
+mock.ref <- getSequences(file.path(path, "HMP_MOCK.v35.fasta"))
+match.ref <- sum(sapply(names(unqs.mock), function(x) any(grepl(x, mock.ref))))
+cat("Of those,", sum(match.ref), "were exact matches to the expected reference sequences.\n")
+```
+
+```{r}
+# Vérifier les types de unqs.mock et mock.ref
+class(unqs.mock)
+class(mock.ref)
+
+# Vérifier la structure des objets
+str(unqs.mock)
+str(mock.ref)
+```
+
+```{r}
+unqs.mock <- unlist(unqs.mock)
+```
+
+```{r}
+unqs.mock[[1]]  # Accède au premier élément de la liste
+```
+
+```{r}
+# Assurez-vous que unqs.mock et mock.ref sont des vecteurs de chaînes
+unqs.mock <- unlist(unqs.mock)
+mock.ref <- unlist(mock.ref)
+
+# Appliquer la logique avec sapply et grepl
+result <- sum(sapply(unqs.mock, function(x) any(grepl(x, mock.ref))))
+
+# Vérifier le résultat
+print(result)
+```
+
+```{r}
+# Vérifier si le fichier existe à l'emplacement spécifié
+file_exists <- file.exists(mock.ref)
+print(file_exists)
+```
+
+```{r}
+mock.ref <- "/home/rstudio/ARTICLE-APO/FICHIERDESEQUENCES/HMP_MOCK.V35.FASTA"
+# Exemple pour donner des permissions de lecture
+chmod +r /home/rstudio/ARTICLE-APO/FICHIERDESEQUENCES/HMP_MOCK.V35.FASTA
+```
+
+```{r}
+# Lire le fichier fasta (si c'est ce que vous voulez faire)
+mock.ref_content <- readLines(mock.ref)
+
+# Appliquer la logique avec sapply et grepl
+result <- sum(sapply(unqs.mock, function(x) any(grepl(as.character(x), mock.ref_content))))
+
+# Vérifier le résultat
+print(result)
+```
+
+### Graphiques
+
+```{r}
+samples.out <- rownames(seqtab.nochim)
+subject <- sapply(strsplit(samples.out, "D"), `[`, 1)
+gender <- substr(subject,1,1)
+subject <- substr(subject,2,999)
+day <- as.integer(sapply(strsplit(samples.out, "D"), `[`, 2))
+samdf <- data.frame(Subject=subject, Gender=gender, Day=day)
+samdf$When <- "Early"
+samdf$When[samdf$Day>100] <- "Late"
+rownames(samdf) <- samples.out
+```
+
+```{r}
+ps <- phyloseq(otu_table(seqtab.nochim, taxa_are_rows=FALSE), 
+               sample_data(samdf), 
+               tax_table(taxa))
+ps <- prune_samples(sample_names(ps) != "Mock", ps) # Remove mock sample
+```
+
+```{r}
+dna <- Biostrings::DNAStringSet(taxa_names(ps))
+names(dna) <- taxa_names(ps)
+ps <- merge_phyloseq(ps, dna)
+taxa_names(ps) <- paste0("ASV", seq(ntaxa(ps)))
+ps
+```
+
+```{r}
+plot_richness(ps, x="Day", measures=c("Shannon", "Simpson"), color="When")
+```
+
+```{r}
+# Transform data to proportions as appropriate for Bray-Curtis distances
+ps.prop <- transform_sample_counts(ps, function(otu) otu/sum(otu))
+ord.nmds.bray <- ordinate(ps.prop, method="NMDS", distance="bray")
+```
+
+```{r}
+plot_ordination(ps.prop, ord.nmds.bray, color="When", title="Bray NMDS")
+```
+
+```{r}
+top20 <- names(sort(taxa_sums(ps), decreasing=TRUE))[1:20]
+ps.top20 <- transform_sample_counts(ps, function(OTU) OTU/sum(OTU))
+ps.top20 <- prune_taxa(top20, ps.top20)
+plot_bar(ps.top20, x="Day", fill="Family") + facet_wrap(~When, scales="free_x")
+```
+
+```{r}
+
+```
+
+
+
+```{r}
+data <- data.frame(
+  sample.names
+)
+
+# Installer et charger le package cluster pour la distance de Gower
+install.packages("cluster")
+library(cluster)
+```
+
+```{r}
+library(cluster)
+```
+
+```{r}
+data[] <- lapply(data, function(x) if(is.character(x)) factor(x) else x)
+# Calculer la matrice de distance de Gower
+dist_matrix_gower <- daisy(data, metric = "gower")
+
+# Vérifier la matrice de distance
+print(dist_matrix_gower)
+
+# Réaliser la PCoA avec cmdscale
+pcoa_result <- cmdscale(dist_matrix_gower, k = 2)  # k = 2 pour obtenir 2 dimensions
+
+# Visualiser les résultats de la PCoA
+plot(pcoa_result[, 1], pcoa_result[, 2], 
+     xlab = "Dimension 1", ylab = "Dimension 2", 
+     main = "PCoA", pch = 19)
+```
+
+
 # Pour les Bactéries
 
 ### Définition de la variable et affichage des fichiers
@@ -151,7 +317,7 @@ head(taxa.print)
 ```{r}
 paths <- "~/article-apo/Fichierdesequencesbacterie"
 list.files(paths)
-data2<-read.table(file = "/home/rstudio/article-apo/SraRunTable_bact.csv", header = TRUE, sep=",") # Création de la table de données
+data2<-read.table(file = "/home/rstudio/article-apo/SraRunTable_bact21.csv", header = TRUE, sep=",") # Création de la table de données
 ```
 
 ### Utiliser une colonne des métadonnées pour définir le nom des échantillons
@@ -164,23 +330,22 @@ print(fnRbs)
 ```
 
 ```{r}
-fichiers_a_supprimer <- c("SRR25277890_2.fastq.gz", "SRR25277891_2.fastq.gz")
-fnFbs <- setdiff(fnFbs, fichiers_a_supprimer)
-fnRbs <- setdiff(fnRbs, fichiers_a_supprimer)
-```
-
-```{r}
-sample.names2 <- (data$Sample.Name)
+sample.names2 <- (data2$Sample.Name)
 sample.names2  
 ```
 
 ```{r}
-plotQualityProfile(fnFbs[1:20])
+plotQualityProfile(fnFbs[1:2])
 ```
 
 ```{r}
 plotQualityProfile(fnRbs[1:20])
 ```
+
+```{r}
+plotQualityProfile(filtFbs[1])
+```
+
 
 ### Filtrer et rogner
 
@@ -192,8 +357,12 @@ names(filtRbs) <- sample.names2
 ```
 
 ```{r}
+summary(filtFbs)
+```
+
+```{r}
 out2 <- filterAndTrim(fnFbs, filtFbs, fnRbs, filtRbs, truncLen=c(260,260),
-              maxN=0, maxEE=c(2,2), truncQ=2, rm.phix=TRUE,
+              maxN=0, maxEE=c(4,4), truncQ=4, rm.phix=TRUE,
               compress=TRUE, multithread=TRUE) 
 head(out2)
 ```
@@ -202,6 +371,71 @@ head(out2)
 
 ```{r}
 errF2 <- learnErrors(filtFbs, multithread=TRUE)
+```
+
+```{r}
+errR2 <- learnErrors(filtRbs, multithread=TRUE)
+```
+
+```{r}
+plotErrors(errF, nominalQ=TRUE)
+```
+
+### Application de l’algorithme d’interférence d’échantillon de base aux données de séqences filtrées et découpées
+
+```{r}
+dadaFbs <- dada2(filtFbs, err=errF2, multithread=TRUE)
+```
+
+```{r}
+dadaRbs <- dada2(filtRbs, err=errR2, multithread=TRUE)
+```
+
+```{r}
+dadaFs[[1]]
+```
+
+### Fusionner les lectures appariées
+
+```{r}
+mergers <- mergePairs(dadaFs, filtFs, dadaRs, filtRs, verbose=TRUE)
+```
+
+```{r}
+plotQualityProfile(filtFs[1:10])
+```
+
+```{r}
+plotQualityProfile(filtRs[1:10])
+```
+
+```{r}
+head(mergers[[1]])
+```
+
+### Construire une table de séquences
+
+```{r}
+seqtab <- makeSequenceTable(mergers)
+dim(seqtab)
+```
+
+```{r}
+table(nchar(getSequences(seqtab)))
+```
+
+### Supprimer les chimères
+
+```{r}
+seqtab.nochim <- removeBimeraDenovo(seqtab, method="consensus", multithread=TRUE, verbose=TRUE)
+```
+
+```{r}
+dim(seqtab.nochim)
+```
+
+```{r}
+sum(seqtab.nochim)/sum(seqtab) 
 ```
 
 
